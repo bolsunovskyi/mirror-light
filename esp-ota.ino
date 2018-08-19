@@ -25,12 +25,15 @@
 
 #define MQTT_SERVER "192.168.1.5"
 #define MQTT_PORT 1883
+#define SWITCH_PIN 12
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 WiFiUDP udpClient;
 Syslog syslog(udpClient, SYSLOG_SERVER, SYSLOG_PORT, SYSLOG_DEVICE_HOSTNAME, SYSLOG_APP_NAME, LOG_KERN);
+
+bool switchOn = false;
 
 int readBrightness() {
   int res = EEPROM.read(0);
@@ -119,6 +122,15 @@ void setup() {
   digitalWrite(POWER_PIN, HIGH);
   delay(1000);
   digitalWrite(POWER_PIN, LOW);
+
+  pinMode(SWITCH_PIN, INPUT);
+  delay(500);
+  if(digitalRead(SWITCH_PIN) == 1) {
+    syslog.logf(LOG_INFO, "switch is on");
+    switchOn = true;
+  } else {
+    syslog.logf(LOG_INFO, "switch is off");
+  }
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -135,7 +147,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (strcmp(topic, POWER_TOPIC) == 0) {
     if(strcmp(msg, "ON") == 0) {
       digitalWrite(POWER_PIN, HIGH);
-    } else if(strcmp(msg, "OFF") == 0) {
+    } else if(strcmp(msg, "OFF") == 0 && !switchOn) {
       digitalWrite(POWER_PIN, LOW);
     }
   } else if (strcmp(topic, BRIGHTNESS_TOPIC) == 0) {
@@ -174,5 +186,21 @@ void loop() {
     reconnect();
   }
   client.loop();
+
+  if (!switchOn && digitalRead(SWITCH_PIN) == 1) {
+    switchOn = true;
+    digitalWrite(POWER_PIN, HIGH);
+    delay(100);
+    Serial.println("switch on");
+    syslog.logf(LOG_INFO, "switch on");
+    //client.publish(POWER_TOPIC, "ON", 2);
+  } else if(switchOn && digitalRead(SWITCH_PIN) == 0) {
+    switchOn = false;
+    digitalWrite(POWER_PIN, LOW);
+    delay(100);
+    Serial.println("switch off");
+    syslog.logf(LOG_INFO, "switch off");
+    //client.publish(POWER_TOPIC, "OFF", 3);
+  }
 }
 
