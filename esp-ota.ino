@@ -14,14 +14,14 @@
 #define STATUS_TOPIC "shouse/tele/nodemcu-0/STATUS"
 
 #define WIFI_SSID "MARVEL"
-#define WIFI_PASSWORD "sosishurup"
+#define WIFI_PASSWORD "---"
 #define WIFI_HOSTNAME "nodemcu-0"
 
 #define SYSLOG_SERVER "192.168.1.5"
 #define SYSLOG_PORT 514
 #define SYSLOG_DEVICE_HOSTNAME "nodemcu-0"
 #define SYSLOG_APP_NAME "mirror"
-#define OTA_PASSWORD "53263952360"
+#define OTA_PASSWORD "---"
 
 #define MQTT_SERVER "192.168.1.5"
 #define MQTT_PORT 1883
